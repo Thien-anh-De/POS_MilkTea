@@ -207,6 +207,10 @@ CREATE POLICY "orders_insert" ON orders FOR INSERT WITH CHECK (auth.uid() IS NOT
 DROP POLICY IF EXISTS "orders_update" ON orders;
 CREATE POLICY "orders_update" ON orders FOR UPDATE USING (auth.uid() IS NOT NULL);
 
+DROP POLICY IF EXISTS "orders_delete" ON orders;
+CREATE POLICY "orders_delete" ON orders FOR DELETE USING (auth.uid() IS NOT NULL);
+
+
 -- Policies Order Items
 DROP POLICY IF EXISTS "order_items_select" ON order_items;
 CREATE POLICY "order_items_select" ON order_items FOR SELECT USING (true);

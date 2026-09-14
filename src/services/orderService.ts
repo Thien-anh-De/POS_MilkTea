@@ -68,8 +68,14 @@ export const orderService = {
       .eq('order_id', orderId)
 
     if (!count || count === 0) {
-      const { error } = await supabase.from('orders').delete().eq('id', orderId)
-      if (error) {
+      const { data: deleted, error } = await supabase
+        .from('orders')
+        .delete()
+        .eq('id', orderId)
+        .select()
+
+      // Nếu xóa không thành công (ví dụ thiếu RLS policy DELETE), fallback chuyển sang CANCELLED để không bị treo OPEN 0đ
+      if (error || !deleted || deleted.length === 0) {
         await supabase
           .from('orders')
           .update({ status: 'CANCELLED', cancel_reason: 'Bàn trống không gọi món' })
