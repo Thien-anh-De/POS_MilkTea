@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
-import { Coffee, Eye, EyeOff, ArrowRight } from 'lucide-react'
+import { CupSoda, Eye, EyeOff, ArrowRight } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -44,8 +44,8 @@ export default function LoginPage() {
         alignItems: 'center',
         justifyContent: 'center',
         background: `
-          radial-gradient(ellipse at 20% 50%, rgba(163, 83, 34, 0.15) 0%, transparent 50%),
-          radial-gradient(ellipse at 80% 50%, rgba(212, 132, 50, 0.1) 0%, transparent 50%),
+          radial-gradient(ellipse at 20% 50%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+          radial-gradient(ellipse at 80% 50%, rgba(236, 72, 153, 0.12) 0%, transparent 50%),
           var(--color-surface)
         `,
         padding: '1rem',
@@ -59,21 +59,21 @@ export default function LoginPage() {
               width: 72,
               height: 72,
               borderRadius: 'var(--radius-2xl)',
-              background: 'linear-gradient(135deg, var(--color-coffee-500), var(--color-coffee-800))',
+              background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: '1rem',
-              boxShadow: '0 0 30px rgba(212, 132, 50, 0.3)',
+              boxShadow: '0 0 30px rgba(139, 92, 246, 0.35)',
             }}
           >
-            <Coffee size={36} color="white" />
+            <CupSoda size={36} color="white" />
           </div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.25rem', color: 'var(--color-coffee-300)' }}>
             Molliee
           </h1>
           <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-            Point of Sale System
+            Hệ thống POS Trà Sữa & Topping
           </p>
         </div>
 

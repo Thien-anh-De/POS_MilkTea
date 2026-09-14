@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import {
-  Coffee,
+  CupSoda,
   LayoutDashboard,
   ShoppingCart,
   Grid3X3,
@@ -61,13 +61,14 @@ export function MainLayout({ children }: { children: ReactNode }) {
               width: 34,
               height: 34,
               borderRadius: 'var(--radius-md)',
-              background: 'linear-gradient(135deg, var(--color-coffee-500), var(--color-coffee-700))',
+              background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(139, 92, 246, 0.3)',
             }}
           >
-            <Coffee size={18} color="white" />
+            <CupSoda size={18} color="white" />
           </div>
           <div>
             <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-coffee-800)', lineHeight: 1.2 }}>
@@ -107,20 +108,21 @@ export function MainLayout({ children }: { children: ReactNode }) {
                 width: 40,
                 height: 40,
                 borderRadius: 'var(--radius-lg)',
-                background: 'linear-gradient(135deg, var(--color-coffee-500), var(--color-coffee-700))',
+                background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(139, 92, 246, 0.25)',
               }}
             >
-              <Coffee size={22} color="white" />
+              <CupSoda size={22} color="white" />
             </div>
             <div>
               <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--color-coffee-300)' }}>
                 Molliee
               </div>
               <div style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
-                Point of Sale
+                Trà Sữa & Topping
               </div>
             </div>
           </div>

@@ -1,33 +1,39 @@
 @import "tailwindcss";
 
 /* ============================================================
-   POS 1994 Coffee — Design System (Light Theme - Basic & Clean)
+   POS Molliee — Milk Tea & Boba Design System (Light & Fresh)
    ============================================================ */
 
 @theme {
-  /* ── Brand Colors (Warm Coffee Palette for Light Mode) ───── */
-  --color-coffee-50: #fdfaf6;
-  --color-coffee-100: #f7ede0;
-  --color-coffee-200: #eedec7;
-  --color-coffee-300: #78350f; /* Heading & primary highlight */
-  --color-coffee-400: #9a4716; /* Price tags & accents */
-  --color-coffee-500: #b45309;
-  --color-coffee-600: #92400e;
-  --color-coffee-700: #78350f;
-  --color-coffee-800: #542509;
-  --color-coffee-900: #3b1704;
-  --color-coffee-950: #200c02;
+  /* ── Brand Colors (Milk Tea & Boba Taro / Berry Palette) ─── */
+  --color-coffee-50: #faf5ff;  /* Soft lavender milk cream */
+  --color-coffee-100: #f3e8ff; /* Sweet taro milk */
+  --color-coffee-200: #e9d5ff; /* Taro pastel */
+  --color-coffee-300: #6d28d9; /* Deep royal taro heading */
+  --color-coffee-400: #7c3aed; /* Vibrant purple accent */
+  --color-coffee-500: #8b5cf6; /* Primary brand taro milk */
+  --color-coffee-600: #7c3aed; /* Buttons & primary action */
+  --color-coffee-700: #6d28d9; /* Deep purple hover */
+  --color-coffee-800: #5b21b6; /* Strong dark purple */
+  --color-coffee-900: #4c1d95; /* Contrast text */
+  --color-coffee-950: #2e1065;
+
+  /* ── Boba Berry & Peach Accents ──────────────────────────── */
+  --color-boba-pink: #ec4899;
+  --color-boba-rose: #f43f5e;
+  --color-boba-peach: #fb923c;
+  --color-boba-cream: #fff1f2;
 
   --color-cream-50: #ffffff;
-  --color-cream-100: #faf8f5;
-  --color-cream-200: #f4efe6;
-  --color-cream-300: #e8ded0;
+  --color-cream-100: #faf5ff;
+  --color-cream-200: #f5f3ff;
+  --color-cream-300: #ede9fe;
 
   /* ── Semantic Colors (Light Theme) ───────────────────────── */
-  --color-surface: #f8fafc;        /* App background: clean, modern light slate */
+  --color-surface: #f8fafc;        /* Clean, modern app background */
   --color-surface-card: #ffffff;   /* Card / Panel / Table background */
-  --color-surface-hover: #f1f5f9;  /* Subtle hover */
-  --color-surface-active: #e2e8f0; /* Active item */
+  --color-surface-hover: #f5f3ff;  /* Subtle taro hover */
+  --color-surface-active: #ede9fe; /* Active item */
   --color-border: #e2e8f0;         /* Standard border */
   --color-border-light: #f1f5f9;   /* Inner dividers */
 
@@ -50,10 +56,10 @@
   --radius-xl: 1rem;
   --radius-2xl: 1.25rem;
 
-  /* ── Shadows (Basic, Clean & Soft) ───────────────────────── */
-  --shadow-glow: 0 4px 14px rgba(180, 83, 9, 0.12);
+  /* ── Shadows (Soft Milk Tea Glow) ─────────────────────────── */
+  --shadow-glow: 0 4px 14px rgba(139, 92, 246, 0.18);
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
-  --shadow-elevated: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --shadow-elevated: 0 10px 25px -5px rgba(139, 92, 246, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
 }
 
 /* ── Base Styles ───────────────────────────────────────────── */
@@ -160,7 +166,7 @@ body {
 
 .glass-card:hover {
   border-color: var(--color-coffee-400);
-  box-shadow: 0 4px 12px rgba(146, 64, 14, 0.08);
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.12);
 }
 
 /* ── Buttons ───────────────────────────────────────────────── */
@@ -193,7 +199,7 @@ body {
 }
 .btn-primary:hover {
   background: linear-gradient(135deg, var(--color-coffee-500), var(--color-coffee-600));
-  box-shadow: 0 2px 8px rgba(146, 64, 14, 0.25);
+  box-shadow: 0 2px 10px rgba(124, 58, 237, 0.3);
   transform: translateY(-1px);
 }
 
@@ -253,7 +259,7 @@ body {
 
 .input:focus {
   border-color: var(--color-coffee-500);
-  box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.12);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
 }
 
 .input::placeholder {
@@ -288,7 +294,7 @@ body {
 
 .select:focus {
   border-color: var(--color-coffee-500);
-  box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.12);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
 }
 
 /* ── Badge ─────────────────────────────────────────────────── */
@@ -323,8 +329,8 @@ body {
 }
 
 .badge-coffee {
-  background: #fef3c7;
-  color: #92400e;
+  background: #f3e8ff;
+  color: #6d28d9;
 }
 
 /* ── Table status colors ───────────────────────────────────── */
@@ -457,10 +463,59 @@ body {
 }
 
 .sidebar-link.active {
-  color: var(--color-coffee-300);
-  background: #fef3c7;
-  border-color: #fde68a;
+  color: #6d28d9;
+  background: #f5f3ff;
+  border-color: #ddd6fe;
   font-weight: 600;
+}
+
+/* ── A4 End of Day Sales Report Sheet Styles ──────────────── */
+.report-sheet-container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.report-sheet-fullscreen {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  border-radius: 0 !important;
+  z-index: 99999 !important;
+  background: #ffffff !important;
+  overflow-y: auto !important;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .report-sheet-printable, .report-sheet-printable * {
+    visibility: visible;
+  }
+  .report-sheet-printable {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
 }
 
 /* ── Data Table ────────────────────────────────────────────── */

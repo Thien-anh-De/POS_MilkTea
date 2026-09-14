@@ -434,4 +434,148 @@ export const reportService = {
       total_sales_quantity,
     }
   },
+
+  // ── Báo cáo cuối ngày về bán hàng (Chuẩn mẫu A4 như hình) ──
+  async getDailySalesSheet(dateStr: string, cashierFilter?: string) {
+    const startIso = new Date(`${dateStr}T00:00:00.000`).toISOString()
+    const endIso = new Date(`${dateStr}T23:59:59.999`).toISOString()
+
+    const { data: rawOrders, error } = await supabase
+      .from('orders')
+      .select(`
+        id,
+        invoice_number,
+        status,
+        subtotal,
+        discount,
+        total,
+        created_at,
+        paid_at,
+        table_id,
+        cashier_id,
+        table:tables(id, name),
+        cashier:profiles!cashier_id(id, name),
+        payment:payments(id, method, amount),
+        items:order_items(id, product_name, quantity, unit_price, subtotal, note)
+      `)
+      .eq('status', 'PAID')
+      .gte('paid_at', startIso)
+      .lte('paid_at', endIso)
+      .order('paid_at', { ascending: false })
+
+    if (error) throw new Error(error.message)
+
+    const orders = rawOrders ?? []
+
+    // Collect all cashiers
+    const cashiersSet = new Set<string>()
+    orders.forEach((o: any) => {
+      const cName = o.cashier?.name || 'Thu ngân'
+      cashiersSet.add(cName)
+    })
+
+    // Filter by cashier if specified
+    const filteredOrders = cashierFilter && cashierFilter !== 'ALL'
+      ? orders.filter((o: any) => (o.cashier?.name || 'Thu ngân') === cashierFilter)
+      : orders
+
+    // Process orders into flattened clean structure
+    const processedOrders = filteredOrders.map((o: any) => {
+      const itemsList = (o.items ?? []).map((it: any) => ({
+        id: it.id,
+        product_name: it.product_name,
+        quantity: it.quantity,
+        unit_price: Number(it.unit_price) || 0,
+        subtotal: Number(it.subtotal) || 0,
+        note: it.note,
+      }))
+
+      const totalQty = itemsList.reduce((s: number, i: any) => s + i.quantity, 0)
+      const payMethod = (o.payment as any)?.[0]?.method || (o.payment as any)?.method || 'CASH'
+
+      return {
+        id: o.id,
+        invoice_number: o.invoice_number || `HD-${o.id.substring(0, 6).toUpperCase()}`,
+        paid_at: o.paid_at || o.created_at,
+        table_name: o.table?.name || 'Mang về',
+        cashier_name: o.cashier?.name || 'Thu ngân',
+        item_count: totalQty,
+        subtotal: Number(o.subtotal) || 0,
+        discount: Number(o.discount) || 0,
+        total: Number(o.total) || 0,
+        payment_method: payMethod,
+        items: itemsList,
+      }
+    })
+
+    // Group by hour (e.g. 21:00, 20:00...)
+    const hourMap = new Map<string, typeof processedOrders>()
+    processedOrders.forEach((ord) => {
+      const d = new Date(ord.paid_at)
+      const hour = d.getHours()
+      const hourKey = `${String(hour).padStart(2, '0')}:00`
+      const list = hourMap.get(hourKey) ?? []
+      list.push(ord)
+      hourMap.set(hourKey, list)
+    })
+
+    // Sort hours descending (latest first, e.g. 21:00, 20:00...)
+    const sortedHours = Array.from(hourMap.keys()).sort((a, b) => b.localeCompare(a))
+
+    const hour_groups = sortedHours.map((hourKey) => {
+      const groupOrders = hourMap.get(hourKey)!
+      const grpQty = groupOrders.reduce((s, o) => s + o.item_count, 0)
+      const grpRev = groupOrders.reduce((s, o) => s + o.total, 0)
+      return {
+        hour_str: hourKey,
+        orders: groupOrders,
+        total_qty: grpQty,
+        total_revenue: grpRev,
+        total_payment: grpRev,
+      }
+    })
+
+    // Totals
+    const total_revenue = processedOrders.reduce((s, o) => s + o.total, 0)
+    const total_items = processedOrders.reduce((s, o) => s + o.item_count, 0)
+
+    let cash_amount = 0
+    let cash_orders = 0
+    let bank_amount = 0
+    let bank_orders = 0
+
+    processedOrders.forEach((o) => {
+      if (o.payment_method === 'CASH') {
+        cash_amount += o.total
+        cash_orders += 1
+      } else {
+        bank_amount += o.total
+        bank_orders += 1
+      }
+    })
+
+    const now = new Date()
+    const report_generated_at = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+
+    return {
+      date_str: dateStr,
+      report_generated_at,
+      branch_name: 'Molliee Milk Tea · Chi nhánh trung tâm',
+      total_orders: processedOrders.length,
+      total_items,
+      total_revenue,
+      total_other_income: 0,
+      total_tax: 0,
+      total_return_fee: 0,
+      total_payment: total_revenue,
+      cash_amount,
+      cash_orders,
+      bank_amount,
+      bank_orders,
+      hour_groups,
+      all_orders: processedOrders,
+      cashiers: Array.from(cashiersSet),
+    }
+  },
 }
+

@@ -15,7 +15,9 @@ import {
   Trophy,
   Coins,
   Sun,
-  Coffee,
+  CupSoda,
+  FileText,
+  BarChart3,
   Sparkles,
   ArrowUpRight,
   Receipt,
@@ -24,13 +26,18 @@ import {
   Palmtree,
   SlidersHorizontal,
 } from 'lucide-react'
+import DailySalesReportSheet from '@/components/DailySalesReportSheet'
 
+type ReportMode = 'daily_sheet' | 'analytics'
 type PresetTime = 'today' | 'yesterday' | 'last7days' | 'thismonth' | 'last30days' | 'custom'
 type ProductRankTab = 'top_high' | 'top_low'
 type DimensionTab = 'hourly' | 'day_of_week' | 'daily'
 
 export default function ReportsPage() {
   const { toasts, error: toastError, removeToast } = useToast()
+
+  // Main Report Mode (Daily Sheet vs Analytics)
+  const [reportMode, setReportMode] = useState<ReportMode>('daily_sheet')
 
   // Filters State
   const [preset, setPreset] = useState<PresetTime>('thismonth')
@@ -174,25 +181,53 @@ export default function ReportsPage() {
       {/* Page Header */}
       <div className="page-header" style={{ marginBottom: '1.25rem' }}>
         <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-          <Coffee color="var(--color-coffee-500)" size={28} />
+          <CupSoda color="var(--color-coffee-500)" size={28} />
           Báo Cáo Doanh Thu & Bán Hàng
         </h1>
         <p className="page-subtitle">
-          Thống kê top doanh thu cao, top doanh thu yếu, phân bổ theo giờ và so sánh ngày thường vs cuối tuần
+          Mẫu biểu báo cáo cuối ngày bán hàng theo chuẩn kế toán và phân tích đa chiều chuyên sâu
         </p>
       </div>
 
-      {/* ── FILTER TOOLBAR ─────────────────────────────────────────── */}
-      <div
-        className="glass-card"
-        style={{
-          padding: '1.25rem',
-          marginBottom: '1.5rem',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1rem',
-        }}
-      >
+      {/* Main Mode Switcher */}
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+        <button
+          className={`btn ${reportMode === 'daily_sheet' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setReportMode('daily_sheet')}
+          style={{ gap: '0.5rem', borderRadius: 'var(--radius-lg)', fontWeight: 600 }}
+        >
+          <FileText size={16} />
+          Báo cáo cuối ngày bán hàng (Mẫu chuẩn A4)
+        </button>
+        <button
+          className={`btn ${reportMode === 'analytics' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setReportMode('analytics')}
+          style={{ gap: '0.5rem', borderRadius: 'var(--radius-lg)', fontWeight: 600 }}
+        >
+          <BarChart3 size={16} />
+          Phân tích doanh thu đa chiều & Xếp hạng món
+        </button>
+      </div>
+
+      {/* Mode 1: Daily Sheet Report */}
+      {reportMode === 'daily_sheet' && (
+        <DailySalesReportSheet />
+      )}
+
+      {/* Mode 2: Detailed Analytics */}
+      {reportMode === 'analytics' && (
+        <>
+          {/* ── FILTER TOOLBAR ─────────────────────────────────────────── */}
+          <div
+            className="glass-card"
+            style={{
+              padding: '1.25rem',
+              marginBottom: '1.5rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem',
+            }}
+          >
         {/* Row 1: Time Presets & Date Inputs */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
           {/* Presets */}
@@ -546,15 +581,15 @@ export default function ReportsPage() {
                 >
                   <div
                     style={{
-                      height: '240px',
+                      height: '260px',
                       display: 'flex',
                       alignItems: 'flex-end',
                       justifyContent: 'space-between',
-                      gap: '0.375rem',
-                      overflowX: 'auto',
-                      WebkitOverflowScrolling: 'touch',
+                      gap: '0.25rem',
+                      overflowX: 'hidden',
                       borderBottom: '2px solid var(--color-border)',
                       paddingBottom: '0.25rem',
+                      width: '100%',
                     }}
                   >
                     {analytics.hourly.map((h) => {
@@ -566,7 +601,7 @@ export default function ReportsPage() {
                           key={h.hour}
                           style={{
                             flex: '1 1 0',
-                            minWidth: '38px',
+                            minWidth: 0,
                             height: '100%',
                             display: 'flex',
                             flexDirection: 'column',
@@ -581,15 +616,15 @@ export default function ReportsPage() {
                             <div
                               style={{
                                 marginBottom: '0.375rem',
-                                fontSize: '0.675rem',
+                                fontSize: '0.625rem',
                                 fontWeight: 800,
                                 color: isPeak ? '#d97706' : 'var(--color-coffee-800)',
                                 textAlign: 'center',
                                 whiteSpace: 'nowrap',
                               }}
                             >
-                              {isPeak && <div style={{ fontSize: '0.65rem' }}>🔥</div>}
-                              {formatShortCurrency(h.revenue)}
+                              {isPeak && <span style={{ fontSize: '0.6rem' }}>🔥</span>}
+                              <div>{formatShortCurrency(h.revenue)}</div>
                             </div>
                           ) : (
                             <div style={{ height: '14px', marginBottom: '0.375rem' }} />
@@ -598,11 +633,11 @@ export default function ReportsPage() {
                           {/* The Vertical Column Bar */}
                           <div
                             style={{
-                              width: '70%',
-                              maxWidth: '28px',
-                              minWidth: '16px',
+                              width: '80%',
+                              maxWidth: '26px',
+                              minWidth: '8px',
                               height: `${pct}%`,
-                              borderRadius: '6px 6px 0 0',
+                              borderRadius: '4px 4px 0 0',
                               background: isPeak
                                 ? 'linear-gradient(180deg, #f59e0b 0%, #d97706 100%)'
                                 : h.revenue > 0
@@ -622,9 +657,10 @@ export default function ReportsPage() {
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
-                      gap: '0.375rem',
-                      overflowX: 'auto',
+                      gap: '0.25rem',
+                      overflowX: 'hidden',
                       paddingTop: '0.5rem',
+                      width: '100%',
                     }}
                   >
                     {analytics.hourly.map((h) => {
@@ -634,20 +670,20 @@ export default function ReportsPage() {
                           key={h.hour}
                           style={{
                             flex: '1 1 0',
-                            minWidth: '38px',
+                            minWidth: 0,
                             textAlign: 'center',
                           }}
                         >
                           <div
                             style={{
-                              fontSize: '0.8rem',
+                              fontSize: '0.725rem',
                               fontWeight: isPeak ? 800 : 600,
                               color: isPeak ? '#d97706' : 'var(--color-text-primary)',
                             }}
                           >
                             {h.hour}h
                           </div>
-                          <div style={{ fontSize: '0.675rem', color: 'var(--color-text-muted)', marginTop: '0.125rem' }}>
+                          <div style={{ fontSize: '0.625rem', color: 'var(--color-text-muted)', marginTop: '0.1rem' }}>
                             {h.order_count > 0 ? `${h.order_count}đ` : '·'}
                           </div>
                         </div>
@@ -984,6 +1020,8 @@ export default function ReportsPage() {
           </div>
         </>
       )}
-    </div>
+    </>
+  )}
+</div>
   )
 }

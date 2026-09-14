@@ -24,7 +24,7 @@ import {
   CheckCircle2,
   Download,
   Flame,
-  Coffee,
+  CupSoda,
   Sparkles,
   ArrowUp,
   ArrowDown,
@@ -956,7 +956,7 @@ export default function OverviewPage() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Coffee size={18} color="var(--color-coffee-600)" />
+                <CupSoda size={18} color="var(--color-coffee-600)" />
                 <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0 }}>
                   Top sản phẩm bán chạy & So sánh với ngày hôm qua
                 </h3>
@@ -1270,7 +1270,7 @@ export default function OverviewPage() {
                 <input
                   type="text"
                   className="input"
-                  placeholder="Ví dụ: Cà phê, Bạc xỉu, Trà..."
+                  placeholder="Ví dụ: Trà sữa trân châu, Trà đào, Matcha..."
                   value={productSearch}
                   onChange={(e) => setProductSearch(e.target.value)}
                   style={{ padding: '0.45rem 0.75rem' }}

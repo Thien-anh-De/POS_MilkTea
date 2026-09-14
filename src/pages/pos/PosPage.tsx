@@ -9,7 +9,7 @@ import { ToastContainer, LoadingSpinner, EmptyState, Modal } from '@/components/
 import { formatCurrency, removeVietnameseTones } from '@/utils/helpers'
 import type { CoffeeTable, Category, Product, Order, OrderItem, CartItem, ToppingOption } from '@/types'
 import {
-  Coffee,
+  CupSoda,
   Minus,
   Plus,
   Trash2,
@@ -23,7 +23,9 @@ import {
   Search,
   Edit3,
   Sparkles,
+  FileText,
 } from 'lucide-react'
+import DailySalesReportSheet from '@/components/DailySalesReportSheet'
 import { printerService } from '@/services/printerService'
 import { printReceipt, type PrintableOrder } from '@/utils/printer'
 
@@ -89,6 +91,7 @@ export default function PosPage() {
   const [selectedExtras, setSelectedExtras] = useState<string[]>([])
   const [customNoteText, setCustomNoteText] = useState<string>('')
   const [editQuantity, setEditQuantity] = useState<number>(1)
+  const [showDailyReportModal, setShowDailyReportModal] = useState<boolean>(false)
 
   // Load data
   const loadData = useCallback(async () => {
@@ -500,9 +503,19 @@ export default function PosPage() {
     return (
       <div className="animate-fade-in">
         <ToastContainer toasts={toasts} onRemove={removeToast} />
-        <div className="page-header">
-          <h1 className="page-title">Bán hàng</h1>
-          <p className="page-subtitle">Chọn bàn để bắt đầu order</p>
+        <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+          <div>
+            <h1 className="page-title">Bán hàng</h1>
+            <p className="page-subtitle">Chọn bàn để bắt đầu order</p>
+          </div>
+          <button
+            className="btn btn-secondary"
+            onClick={() => setShowDailyReportModal(true)}
+            style={{ gap: '0.5rem', fontWeight: 600 }}
+          >
+            <FileText size={16} color="var(--color-coffee-500)" />
+            Báo cáo cuối ngày
+          </button>
         </div>
 
         <div
@@ -574,10 +587,49 @@ export default function PosPage() {
 
         {tables.length === 0 && (
           <EmptyState
-            icon={<Coffee size={48} />}
+            icon={<CupSoda size={48} />}
             title="Chưa có bàn nào"
             description="Vui lòng thêm bàn trong mục Quản lý bàn"
           />
+        )}
+
+        {/* ── Daily Sales Report Modal (Pop-up over POS screen as in photo) ── */}
+        {showDailyReportModal && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(15, 23, 42, 0.65)',
+              backdropFilter: 'blur(4px)',
+              zIndex: 10000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '1rem',
+              overflowY: 'auto',
+            }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setShowDailyReportModal(false)
+            }}
+          >
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '1100px',
+                maxHeight: '94vh',
+                overflowY: 'auto',
+                borderRadius: 'var(--radius-xl)',
+              }}
+            >
+              <DailySalesReportSheet
+                isModal
+                onClose={() => setShowDailyReportModal(false)}
+              />
+            </div>
+          </div>
         )}
       </div>
     )
@@ -717,7 +769,7 @@ export default function PosPage() {
 
           {filteredProducts.length === 0 && (
             <div className="empty-state" style={{ gridColumn: '1 / -1', padding: '2rem' }}>
-              <Coffee size={36} style={{ opacity: 0.3, margin: '0 auto 0.5rem auto' }} />
+              <CupSoda size={36} style={{ opacity: 0.3, margin: '0 auto 0.5rem auto' }} />
               <p style={{ fontWeight: 600, margin: 0 }}>
                 {searchQuery
                   ? `Không tìm thấy món nào với từ khóa "${searchQuery}"`
