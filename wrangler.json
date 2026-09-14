@@ -1,0 +1,14 @@
+{
+  "name": "pos-molliee",
+  "main": "worker.js",
+  "compatibility_date": "2024-09-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  "vars": {
+    "VITE_SUPABASE_URL": "https://kxxswuuiqlmiynwyklxd.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "sb_publishable_Dz7r4uQeb9rSCSkuq6Idmw_vtykVqzC"
+  }
+}
