@@ -83,11 +83,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
-      return { error: error.message }
+    const MAX_RETRIES = 2
+    let lastError: string | null = null
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        if (error) {
+          // Nếu lỗi mạng tạm thời, thử lại
+          if (
+            attempt < MAX_RETRIES &&
+            (error.message === 'Failed to fetch' ||
+              error.message.includes('NetworkError') ||
+              error.message.includes('network'))
+          ) {
+            await new Promise((r) => setTimeout(r, 1500))
+            continue
+          }
+          lastError = error.message
+          break
+        }
+        return { error: null }
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : 'Lỗi kết nối không xác định'
+        if (attempt < MAX_RETRIES && msg === 'Failed to fetch') {
+          await new Promise((r) => setTimeout(r, 1500))
+          continue
+        }
+        lastError = msg
+        break
+      }
     }
-    return { error: null }
+
+    return { error: lastError }
   }
 
   const signOut = async () => {

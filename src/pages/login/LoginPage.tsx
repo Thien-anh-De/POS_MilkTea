@@ -9,21 +9,26 @@ export default function LoginPage() {
   const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [retrying, setRetrying] = useState(false)
   const { signIn } = useAuth()
   const navigate = useNavigate()
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError('')
+    setRetrying(false)
     setLoading(true)
 
     const { error: err } = await signIn(email, password)
     if (err) {
       if (err.toLowerCase().includes('invalid login credentials')) {
         setError('Email hoặc mật khẩu không chính xác')
+      } else if (err === 'Failed to fetch' || err.toLowerCase().includes('network')) {
+        setError('Không thể kết nối tới máy chủ. Kiểm tra mạng và thử lại.')
       } else {
-        setError(`Lỗi đăng nhập: ${err}`)
+        setError(err)
       }
+      setRetrying(false)
       setLoading(false)
       return
     }
@@ -146,7 +151,7 @@ export default function LoginPage() {
               disabled={loading}
               style={{ width: '100%' }}
             >
-              {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+              {loading ? (retrying ? 'Đang thử lại...' : 'Đang đăng nhập...') : 'Đăng nhập'}
               {!loading && <ArrowRight size={18} />}
             </button>
           </form>
