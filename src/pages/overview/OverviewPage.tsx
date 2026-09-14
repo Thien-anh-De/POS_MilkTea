@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
 import { overviewService, type PeriodType, type OverviewPayload } from '@/services/overviewService'
 import { ToastContainer, LoadingSpinner, Modal } from '@/components/ui'
-import { formatCurrency, formatDateTime } from '@/utils/helpers'
+import { formatCurrency, formatDateTime, calculateGoldenHourOutliers } from '@/utils/helpers'
 import { exportReportToCsv, printReportHtml, printShiftClosingSlip } from '@/utils/exportReport'
 import type { ExportReportRow, ReportPeriodType, ShiftClosingData, ProductReportRow } from '@/types'
 import {
@@ -28,6 +28,7 @@ import {
   Sparkles,
   ArrowUp,
   ArrowDown,
+  Scale,
 } from 'lucide-react'
 
 export default function OverviewPage() {
@@ -339,6 +340,12 @@ export default function OverviewPage() {
     ? Math.max(...data.hourly.map((h) => h.order_count), 1)
     : 1
 
+  // Outlier detection for Golden Hours
+  const goldenHourAnalysis = useMemo(() => {
+    if (!data?.hourly || data.hourly.length === 0) return null
+    return calculateGoldenHourOutliers(data.hourly)
+  }, [data?.hourly])
+
   return (
     <div className="animate-fade-in" style={{ paddingBottom: '3rem' }}>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
@@ -598,43 +605,84 @@ export default function OverviewPage() {
               </div>
             </div>
 
-            {/* Card 5: Khung giờ vàng */}
-            <div
-              className="stat-card"
-              style={{
-                background: 'linear-gradient(135deg, #fffbeb 0%, #ffffff 100%)',
-                borderColor: '#fde68a',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span className="stat-label" style={{ color: '#92400e', fontWeight: 600 }}>
-                  KHUNG GIỜ VÀNG
-                </span>
-                <div
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                    background: '#fef3c7',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Flame size={18} color="#ea580c" />
+            {/* Card 5: Khung giờ vàng (Outlier) hoặc Đều khách */}
+            {goldenHourAnalysis?.isEvenDistribution ? (
+              <div
+                className="stat-card"
+                style={{
+                  background: 'linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%)',
+                  borderColor: '#bbf7d0',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <span className="stat-label" style={{ color: '#166534', fontWeight: 600 }}>
+                    LƯỢNG KHÁCH
+                  </span>
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: '50%',
+                      background: '#dcfce7',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Scale size={18} color="#16a34a" />
+                  </div>
+                </div>
+                <div className="stat-value" style={{ color: '#15803d', fontSize: '1.4rem' }}>
+                  Đều khách
+                </div>
+                <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#15803d', fontWeight: 500 }}>
+                  Doanh thu phân bổ đều các giờ
                 </div>
               </div>
-              <div className="stat-value" style={{ color: '#ea580c' }}>
-                {data.summary.peak_hour !== null
-                  ? `${String(data.summary.peak_hour).padStart(2, '0')}:00 - ${String(
-                      data.summary.peak_hour + 1
-                    ).padStart(2, '0')}:00`
-                  : '--:--'}
+            ) : (
+              <div
+                className="stat-card"
+                style={{
+                  background: 'linear-gradient(135deg, #fffbeb 0%, #ffffff 100%)',
+                  borderColor: '#fde68a',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <span className="stat-label" style={{ color: '#92400e', fontWeight: 600 }}>
+                    KHUNG GIỜ VÀNG
+                  </span>
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: '50%',
+                      background: '#fef3c7',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Flame size={18} color="#ea580c" />
+                  </div>
+                </div>
+                <div className="stat-value" style={{ color: '#ea580c', fontSize: '1.4rem' }}>
+                  {goldenHourAnalysis?.goldenHours[0]
+                    ? `${String(goldenHourAnalysis.goldenHours[0].hour).padStart(2, '0')}:00 - ${String(
+                        goldenHourAnalysis.goldenHours[0].hour + 1
+                      ).padStart(2, '0')}:00`
+                    : data.summary.peak_hour !== null
+                    ? `${String(data.summary.peak_hour).padStart(2, '0')}:00 - ${String(
+                        data.summary.peak_hour + 1
+                      ).padStart(2, '0')}:00`
+                    : '--:--'}
+                </div>
+                <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#b45309', fontWeight: 500 }}>
+                  {goldenHourAnalysis?.goldenHours[0]
+                    ? `Doanh thu đỉnh: ${formatCurrency(goldenHourAnalysis.goldenHours[0].revenue)} (x${goldenHourAnalysis.goldenHours[0].ratioVsMean} TB)`
+                    : `Doanh thu đỉnh: ${formatCurrency(data.summary.peak_hour_revenue)}`}
+                </div>
               </div>
-              <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#b45309', fontWeight: 500 }}>
-                Doanh thu đỉnh: {formatCurrency(data.summary.peak_hour_revenue)}
-              </div>
-            </div>
+            )}
           </div>
 
           {/* ── Cash Flow Bar (Dòng tiền két vs Chuyển khoản) ────── */}
@@ -817,7 +865,7 @@ export default function OverviewPage() {
                   const val = chartMetric === 'revenue' ? h.revenue : h.order_count
                   const max = chartMetric === 'revenue' ? maxHourlyRevenue : maxHourlyOrders
                   const pct = Math.max(0, (val / max) * 100)
-                  const isPeak = h.hour === data.summary.peak_hour && h.revenue > 0
+                  const isPeak = (goldenHourAnalysis ? goldenHourAnalysis.goldenHourSet.has(h.hour) : h.hour === data.summary.peak_hour) && h.revenue > 0
                   const isHovered = hoveredHour === h.hour
 
                   return (

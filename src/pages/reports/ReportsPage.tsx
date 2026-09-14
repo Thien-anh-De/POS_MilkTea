@@ -6,7 +6,7 @@ import {
   type ProductRankingsResult,
 } from '@/services/reportService'
 import { ToastContainer, LoadingSpinner } from '@/components/ui'
-import { formatCurrency } from '@/utils/helpers'
+import { formatCurrency, calculateGoldenHourOutliers } from '@/utils/helpers'
 import type { DayTypeFilter, ProductPerformance } from '@/types'
 import {
   TrendingUp,
@@ -131,6 +131,22 @@ export default function ReportsPage() {
   const maxHourlyRev = useMemo(() => {
     if (!analytics || analytics.hourly.length === 0) return 1
     return Math.max(...analytics.hourly.map((h) => h.revenue), 1)
+  }, [analytics])
+
+  // Outlier detection for Golden Hours (Top 3 outliers or "Đều khách")
+  const goldenHourAnalysis = useMemo(() => {
+    if (!analytics || analytics.hourly.length === 0) {
+      return {
+        isEvenDistribution: true,
+        statusLabel: 'Chưa đủ dữ liệu' as const,
+        message: 'Chưa có dữ liệu bán hàng để phân tích',
+        goldenHours: [],
+        goldenHourSet: new Set<number>(),
+        meanRevenue: 0,
+        threshold: 0,
+      }
+    }
+    return calculateGoldenHourOutliers(analytics.hourly)
   }, [analytics])
 
   // Max value for day of week visual bars
@@ -553,18 +569,88 @@ export default function ReportsPage() {
             {/* TAB: THEO GIỜ (HOURLY VERTICAL COLUMN CHART) */}
             {activeDimension === 'hourly' && (
               <div>
+                {/* ── Smart Outlier Insight Banner ───────────────────────── */}
+                <div
+                  style={{
+                    padding: '0.875rem 1.125rem',
+                    borderRadius: 'var(--radius-lg)',
+                    marginBottom: '1.25rem',
+                    background: goldenHourAnalysis.isEvenDistribution
+                      ? 'linear-gradient(135deg, rgba(240, 253, 244, 0.9) 0%, rgba(220, 252, 231, 0.9) 100%)'
+                      : 'linear-gradient(135deg, rgba(254, 243, 199, 0.85) 0%, rgba(254, 215, 170, 0.85) 100%)',
+                    border: goldenHourAnalysis.isEvenDistribution
+                      ? '1px solid #86efac'
+                      : '1px solid #fcd34d',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '0.75rem',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                    <span style={{ fontSize: '1.35rem' }}>
+                      {goldenHourAnalysis.isEvenDistribution ? '⚖️' : '🔥'}
+                    </span>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: goldenHourAnalysis.isEvenDistribution ? '#166534' : '#92400e' }}>
+                        {goldenHourAnalysis.isEvenDistribution
+                          ? 'Nhận xét: Đều khách trong ngày'
+                          : `Top ${goldenHourAnalysis.goldenHours.length} Khung Giờ Vàng Ngoại Lai (Outlier)`}
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: goldenHourAnalysis.isEvenDistribution ? '#15803d' : '#b45309', marginTop: '0.15rem' }}>
+                        {goldenHourAnalysis.isEvenDistribution
+                          ? 'Lượng khách và doanh thu phân bổ đồng đều giữa các khung giờ, không ghi nhận giờ nào tăng vọt ngoại lai.'
+                          : `Các khung giờ có doanh thu vượt trội hơn hẳn so với mức trung bình ${formatCurrency(goldenHourAnalysis.meanRevenue)}/h (ngưỡng ngoại lai: ${formatCurrency(goldenHourAnalysis.threshold)}/h).`}
+                      </div>
+                    </div>
+                  </div>
+
+                  {!goldenHourAnalysis.isEvenDistribution && goldenHourAnalysis.goldenHours.length > 0 && (
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      {goldenHourAnalysis.goldenHours.map((gh, idx) => (
+                        <span
+                          key={gh.hour}
+                          style={{
+                            padding: '0.35rem 0.65rem',
+                            borderRadius: 'var(--radius-full)',
+                            background: '#ffffff',
+                            border: '1px solid #f59e0b',
+                            color: '#b45309',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.25rem',
+                            boxShadow: '0 1px 3px rgba(245, 158, 11, 0.2)',
+                          }}
+                        >
+                          <span style={{ color: '#ea580c' }}>Top {idx + 1}:</span>
+                          <span>{gh.label}</span>
+                          <span style={{ color: '#b45309' }}>({formatShortCurrency(gh.revenue)})</span>
+                          <span style={{ fontSize: '0.65rem', color: '#15803d', background: '#dcfce7', padding: '1px 4px', borderRadius: 4 }}>
+                            x{gh.ratioVsMean} TB
+                          </span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                   <div style={{ fontSize: '0.825rem', color: 'var(--color-text-muted)' }}>
-                    Biểu đồ cột dọc theo từng khung giờ từ <strong>06:00 đến 23:00</strong> (Cột vàng cam hiển thị giờ cao điểm nhất):
+                    Biểu đồ doanh thu phân bổ từ <strong>06:00 đến 23:00</strong>:
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.75rem', fontWeight: 600 }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                      <span style={{ width: 10, height: 10, borderRadius: 2, background: 'linear-gradient(180deg, #f59e0b, #d97706)' }} />
-                      Giờ cao điểm
-                    </span>
+                    {!goldenHourAnalysis.isEvenDistribution && (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                        <span style={{ width: 10, height: 10, borderRadius: 2, background: 'linear-gradient(180deg, #f59e0b, #d97706)' }} />
+                        Giờ vàng ngoại lai
+                      </span>
+                    )}
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                       <span style={{ width: 10, height: 10, borderRadius: 2, background: 'linear-gradient(180deg, var(--color-coffee-400), var(--color-coffee-700))' }} />
-                      Giờ hoạt động
+                      {goldenHourAnalysis.isEvenDistribution ? 'Giờ bán đều khách' : 'Giờ hoạt động'}
                     </span>
                   </div>
                 </div>
@@ -594,7 +680,7 @@ export default function ReportsPage() {
                   >
                     {analytics.hourly.map((h) => {
                       const pct = Math.max(Math.round((h.revenue / maxHourlyRev) * 100), h.revenue > 0 ? 8 : 2)
-                      const isPeak = h.revenue > 0 && h.revenue === maxHourlyRev
+                      const isPeak = goldenHourAnalysis.goldenHourSet.has(h.hour)
 
                       return (
                         <div
