@@ -141,20 +141,14 @@ export function calculateGoldenHourOutliers(
     }
   }
 
-  // Nếu chỉ có 1 hoặc 2 giờ bán được hàng trong ngày
+  // Nếu chỉ có 1 hoặc 2 giờ bán được hàng trong ngày (chưa đủ mẫu để xác định ngoại lai)
   if (activeHours.length < 3) {
     return {
-      isEvenDistribution: false,
-      statusLabel: 'Có giờ vàng',
-      message: `Tập trung bán vào ${activeHours.length} khung giờ`,
-      goldenHours: activeHours.map((h) => ({
-        hour: h.hour,
-        label: h.label,
-        revenue: h.revenue,
-        order_count: h.order_count,
-        ratioVsMean: 1,
-      })),
-      goldenHourSet: new Set(activeHours.map((h) => h.hour)),
+      isEvenDistribution: true,
+      statusLabel: 'Chưa đủ dữ liệu',
+      message: `Mới có ${activeHours.length} khung giờ phát sinh doanh thu (chưa đủ dữ liệu để tính toán ngoại lai)`,
+      goldenHours: [],
+      goldenHourSet: new Set(),
       meanRevenue: Math.round(activeHours.reduce((s, h) => s + h.revenue, 0) / activeHours.length),
       threshold: 0,
     }

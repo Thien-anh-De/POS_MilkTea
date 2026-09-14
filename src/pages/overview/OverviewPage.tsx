@@ -649,7 +649,7 @@ export default function OverviewPage() {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                   <span className="stat-label" style={{ color: '#92400e', fontWeight: 600 }}>
-                    KHUNG GIỜ VÀNG
+                    KHUNG GIỜ VÀNG (OUTLIER)
                   </span>
                   <div
                     style={{
@@ -665,22 +665,40 @@ export default function OverviewPage() {
                     <Flame size={18} color="#ea580c" />
                   </div>
                 </div>
-                <div className="stat-value" style={{ color: '#ea580c', fontSize: '1.4rem' }}>
-                  {goldenHourAnalysis?.goldenHours[0]
-                    ? `${String(goldenHourAnalysis.goldenHours[0].hour).padStart(2, '0')}:00 - ${String(
-                        goldenHourAnalysis.goldenHours[0].hour + 1
-                      ).padStart(2, '0')}:00`
-                    : data.summary.peak_hour !== null
-                    ? `${String(data.summary.peak_hour).padStart(2, '0')}:00 - ${String(
-                        data.summary.peak_hour + 1
-                      ).padStart(2, '0')}:00`
-                    : '--:--'}
-                </div>
-                <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#b45309', fontWeight: 500 }}>
-                  {goldenHourAnalysis?.goldenHours[0]
-                    ? `Doanh thu đỉnh: ${formatCurrency(goldenHourAnalysis.goldenHours[0].revenue)} (x${goldenHourAnalysis.goldenHours[0].ratioVsMean} TB)`
-                    : `Doanh thu đỉnh: ${formatCurrency(data.summary.peak_hour_revenue)}`}
-                </div>
+                {goldenHourAnalysis?.goldenHours && goldenHourAnalysis.goldenHours.length > 0 ? (
+                  <div>
+                    <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.35rem' }}>
+                      {goldenHourAnalysis.goldenHours.map((gh, idx) => (
+                        <span
+                          key={gh.hour}
+                          style={{
+                            fontSize: '0.8rem',
+                            fontWeight: 700,
+                            padding: '0.2rem 0.5rem',
+                            borderRadius: 'var(--radius-md)',
+                            background: '#fef3c7',
+                            border: '1px solid #f59e0b',
+                            color: '#b45309',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.25rem',
+                          }}
+                        >
+                          <span style={{ color: '#ea580c' }}>#{idx + 1}</span>
+                          <span>{gh.label}</span>
+                          <span style={{ fontSize: '0.7rem', color: '#15803d' }}>x{gh.ratioVsMean}TB</span>
+                        </span>
+                      ))}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#b45309', fontWeight: 500 }}>
+                      Đỉnh: {formatCurrency(goldenHourAnalysis.goldenHours[0].revenue)} (Top 1)
+                    </div>
+                  </div>
+                ) : (
+                  <div className="stat-value" style={{ color: '#ea580c', fontSize: '1.25rem' }}>
+                    --:--
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -836,9 +854,9 @@ export default function OverviewPage() {
                     <span>Doanh thu: <strong>{formatCurrency(data.hourly[hoveredHour].revenue)}</strong></span>
                     <span>&bull;</span>
                     <span>Đơn hàng: <strong>{data.hourly[hoveredHour].order_count} đơn</strong></span>
-                    {hoveredHour === data.summary.peak_hour && (
+                    {goldenHourAnalysis?.goldenHourSet.has(hoveredHour) && (
                       <span className="badge badge-warning" style={{ fontSize: '0.6875rem' }}>
-                        🔥 Giờ cao điểm
+                        🔥 Giờ vàng ngoại lai (Top {goldenHourAnalysis.goldenHours.findIndex((g) => g.hour === hoveredHour) + 1})
                       </span>
                     )}
                   </>
