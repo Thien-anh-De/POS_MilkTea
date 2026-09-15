@@ -124,6 +124,42 @@ export default function PrinterPage() {
               </div>
             </div>
 
+            {/* Font Scale & Margin Selector */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label className="input-label">Cỡ chữ & Căn lề chống tràn</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setSettings({ ...settings, fontScale: 'compact' })}
+                  className={`btn ${(settings.fontScale || 'standard') === 'compact' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ padding: '0.5rem 0.25rem', flexDirection: 'column', gap: '0.125rem' }}
+                >
+                  <span style={{ fontWeight: 700, fontSize: '0.8125rem' }}>Nhỏ gọn</span>
+                  <span style={{ fontSize: '0.6875rem', opacity: 0.85 }}>Chống tràn mép tối đa</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSettings({ ...settings, fontScale: 'standard' })}
+                  className={`btn ${(settings.fontScale || 'standard') === 'standard' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ padding: '0.5rem 0.25rem', flexDirection: 'column', gap: '0.125rem' }}
+                >
+                  <span style={{ fontWeight: 700, fontSize: '0.8125rem' }}>Tiêu chuẩn</span>
+                  <span style={{ fontSize: '0.6875rem', opacity: 0.85 }}>Vừa vặn (Khuyên dùng)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSettings({ ...settings, fontScale: 'large' })}
+                  className={`btn ${(settings.fontScale || 'standard') === 'large' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ padding: '0.5rem 0.25rem', flexDirection: 'column', gap: '0.125rem' }}
+                >
+                  <span style={{ fontWeight: 700, fontSize: '0.8125rem' }}>Rõ nét</span>
+                  <span style={{ fontSize: '0.6875rem', opacity: 0.85 }}>Chữ to đậm nét</span>
+                </button>
+              </div>
+            </div>
+
             {/* Switches / Checkboxes */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', cursor: 'pointer', fontSize: '0.875rem' }}>
@@ -247,14 +283,23 @@ export default function PrinterPage() {
                   Xem trước hóa đơn in nhiệt
                 </h3>
               </div>
-              <span className="badge badge-coffee">Khổ {settings.paperSize}</span>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <span className="badge badge-coffee">Khổ {settings.paperSize}</span>
+                <span className="badge" style={{ background: '#e2e8f0', color: '#334155' }}>
+                  {settings.fontScale === 'compact'
+                    ? 'Cỡ nhỏ gọn'
+                    : settings.fontScale === 'large'
+                    ? 'Cỡ rõ nét'
+                    : 'Cỡ tiêu chuẩn'}
+                </span>
+              </div>
             </div>
 
             {/* Simulated Thermal Paper Mockup */}
             <div
               style={{
                 background: '#f1f5f9',
-                padding: '1.5rem 1rem',
+                padding: '1.25rem 0.75rem',
                 borderRadius: 'var(--radius-lg)',
                 display: 'flex',
                 justifyContent: 'center',
@@ -265,12 +310,20 @@ export default function PrinterPage() {
                 style={{
                   background: '#ffffff',
                   boxShadow: '0 4px 14px rgba(0, 0, 0, 0.08)',
-                  padding: '12px 10px',
+                  padding: '8px 4px',
                   borderRadius: '2px',
                   borderTop: '3px solid #cbd5e1',
                   borderBottom: '3px dashed #cbd5e1',
-                  width: settings.paperSize === 'K58' ? 240 : 310,
+                  width:
+                    settings.paperSize === 'K58'
+                      ? settings.fontScale === 'compact'
+                        ? 200
+                        : 220
+                      : settings.fontScale === 'compact'
+                      ? 270
+                      : 290,
                   transition: 'width 0.2s ease',
+                  boxSizing: 'border-box',
                 }}
                 dangerouslySetInnerHTML={{ __html: previewHtml }}
               />
@@ -301,18 +354,24 @@ export default function PrinterPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--color-coffee-700)' }}>
               <HelpCircle size={18} />
               <h4 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>
-                Mẹo cài đặt máy in hóa đơn trên trình duyệt
+                Mẹo cài đặt máy in để bill không bao giờ bị tràn / mất mép
               </h4>
             </div>
             <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.8125rem', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
               <li>
-                <strong>Chọn máy in:</strong> Trong hộp thoại in của Windows, chọn đúng tên máy in bill quầy (ví dụ: Xprinter, Rongta, POS-80...).
+                <strong>Khổ giấy:</strong> Chọn đúng khổ giấy máy in của bạn (<strong>K80</strong> cho máy quầy 80mm như Xprinter/Rongta, hoặc <strong>K58</strong> cho máy nhỏ 58mm).
               </li>
               <li>
-                <strong>Phần Lề (Margins):</strong> Chọn <strong>"Không có" (None)</strong> để hóa đơn vừa khít khổ giấy và không bị thụt lề trắng.
+                <strong>Cỡ chữ:</strong> Nếu máy in của bạn bị mất chữ bên mép phải (cột Thành tiền), hãy chọn mức <strong>"Nhỏ gọn"</strong> để co hẹp lề và thu nhỏ cỡ chữ an toàn.
               </li>
               <li>
-                <strong>Tiêu đề và chân trang (Headers & Footers):</strong> Bỏ tích để không in ngày giờ và đường dẫn URL của trình duyệt lên hóa đơn.
+                <strong>Phần Lề (Margins) trong hộp thoại in trình duyệt:</strong> Chọn <strong>"Không có" (None)</strong> hoặc <strong>"Tối thiểu" (Minimum)</strong> để hóa đơn không bị đẩy dạt sang một bên.
+              </li>
+              <li>
+                <strong>Tỷ lệ (Scale):</strong> Đặt là <strong>100%</strong> hoặc <strong>"Mặc định" (Default)</strong>.
+              </li>
+              <li>
+                <strong>Tiêu đề và chân trang (Headers & Footers):</strong> Bỏ tích để ẩn ngày giờ và liên kết URL mặc định của trình duyệt.
               </li>
             </ul>
           </div>

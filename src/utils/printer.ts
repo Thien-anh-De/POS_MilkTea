@@ -45,10 +45,48 @@ export function generateReceiptHtml(
   copyLabel?: string
 ): string {
   const isK58 = settings.paperSize === 'K58'
-  const paperWidth = isK58 ? '54mm' : '72mm'
-  const fontSize = isK58 ? '11px' : '12px'
-  const titleSize = isK58 ? '15px' : '17px'
-  const storeSize = isK58 ? '16px' : '19px'
+  const fontScale = settings.fontScale || 'standard'
+
+  // K58 độ rộng đầu in nhiệt thực tế là 48mm (384 dots); K80 là ~70mm.
+  // Đặt lề an toàn để máy in bill không bao giờ bị cắt mép chữ bên phải.
+  let paperWidth = isK58 ? '48mm' : '70mm'
+  if (fontScale === 'compact') {
+    paperWidth = isK58 ? '46mm' : '68mm'
+  } else if (fontScale === 'large') {
+    paperWidth = isK58 ? '50mm' : '72mm'
+  }
+
+  // Cỡ chữ được tinh chỉnh giảm gọn gàng để bill thoáng và không tràn dòng
+  let fontSize = isK58 ? '9.5px' : '11px'
+  let storeSize = isK58 ? '13.5px' : '16px'
+  let titleSize = isK58 ? '12px' : '13.5px'
+  let totalSize = isK58 ? '12.5px' : '14px'
+  let metaSize = isK58 ? '9px' : '10px'
+  let noteSize = isK58 ? '8px' : '9px'
+  let priceSize = isK58 ? '9px' : '10.5px'
+
+  if (fontScale === 'compact') {
+    fontSize = isK58 ? '8.5px' : '10px'
+    storeSize = isK58 ? '12px' : '14.5px'
+    titleSize = isK58 ? '11px' : '12.5px'
+    totalSize = isK58 ? '11.5px' : '13px'
+    metaSize = isK58 ? '8.5px' : '9.5px'
+    noteSize = isK58 ? '7.5px' : '8.5px'
+    priceSize = isK58 ? '8.5px' : '9.5px'
+  } else if (fontScale === 'large') {
+    fontSize = isK58 ? '10.5px' : '12px'
+    storeSize = isK58 ? '15px' : '17.5px'
+    titleSize = isK58 ? '13px' : '15px'
+    totalSize = isK58 ? '13.5px' : '15.5px'
+    metaSize = isK58 ? '9.5px' : '11px'
+    noteSize = isK58 ? '8.5px' : '9.5px'
+    priceSize = isK58 ? '9.5px' : '11px'
+  }
+
+  // Tỷ lệ độ rộng các cột bảng món (cố định để không tràn bill)
+  const qtyWidth = isK58 ? '18px' : '22px'
+  const unitPriceWidth = isK58 ? '40px' : '48px'
+  const totalPriceWidth = isK58 ? '46px' : '56px'
 
   const methodLabel: Record<string, string> = {
     CASH: 'Tiền mặt',
@@ -59,13 +97,13 @@ export function generateReceiptHtml(
     .map(
       (item) => `
       <tr>
-        <td style="padding: 3px 0; font-weight: 500; word-break: break-word;">
+        <td style="padding: 2px 2px 2px 0; font-weight: 500; word-break: break-word; overflow-wrap: break-word; vertical-align: top;">
           <div>${escapeHtml(item.product_name)}</div>
-          ${item.note ? `<div style="font-size: 10px; color: #333; font-style: italic; padding-left: 4px; margin-top: 1px;">&bull; ${escapeHtml(item.note)}</div>` : ''}
+          ${item.note ? `<div style="font-size: ${noteSize}; color: #333; font-style: italic; padding-left: 2px; margin-top: 1px;">&bull; ${escapeHtml(item.note)}</div>` : ''}
         </td>
-        <td style="padding: 3px 0; text-align: center; white-space: nowrap; vertical-align: top;">${item.quantity}</td>
-        <td style="padding: 3px 0; text-align: right; white-space: nowrap; vertical-align: top;">${formatCurrency(item.unit_price)}</td>
-        <td style="padding: 3px 0; text-align: right; font-weight: 600; white-space: nowrap; vertical-align: top;">${formatCurrency(item.subtotal)}</td>
+        <td style="padding: 2px 0; text-align: center; white-space: nowrap; vertical-align: top;">${item.quantity}</td>
+        <td style="padding: 2px 0; text-align: right; white-space: nowrap; vertical-align: top; font-size: ${priceSize};">${formatCurrency(item.unit_price)}</td>
+        <td style="padding: 2px 0; text-align: right; font-weight: 600; white-space: nowrap; vertical-align: top; font-size: ${priceSize};">${formatCurrency(item.subtotal)}</td>
       </tr>
     `
     )
@@ -76,38 +114,40 @@ export function generateReceiptHtml(
       width: ${paperWidth};
       max-width: ${paperWidth};
       margin: 0 auto;
-      font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       font-size: ${fontSize};
-      line-height: 1.35;
+      line-height: 1.3;
       color: #000;
       background: #fff;
-      padding: 4px 2px;
+      padding: 2px 1.5mm 8px 1.5mm;
       box-sizing: border-box;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     ">
       <!-- Header -->
-      <div style="text-align: center; margin-bottom: 6px;">
-        <div style="font-size: ${storeSize}; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
+      <div style="text-align: center; margin-bottom: 5px;">
+        <div style="font-size: ${storeSize}; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase;">
           ${escapeHtml(settings.shopName)}
         </div>
-        ${settings.shopAddress ? `<div style="font-size: 10px; margin-top: 2px;">${escapeHtml(settings.shopAddress)}</div>` : ''}
-        ${settings.shopPhone ? `<div style="font-size: 10px;">Hotline: ${escapeHtml(settings.shopPhone)}</div>` : ''}
+        ${settings.shopAddress ? `<div style="font-size: ${metaSize}; margin-top: 2px; line-height: 1.25;">${escapeHtml(settings.shopAddress)}</div>` : ''}
+        ${settings.shopPhone ? `<div style="font-size: ${metaSize};">Hotline: ${escapeHtml(settings.shopPhone)}</div>` : ''}
       </div>
 
       <!-- Title -->
-      <div style="text-align: center; margin: 8px 0 4px 0;">
+      <div style="text-align: center; margin: 6px 0 4px 0;">
         <div style="font-size: ${titleSize}; font-weight: 800; text-transform: uppercase;">
           ${isPreBill ? 'PHIẾU TẠM TÍNH' : 'HÓA ĐƠN THANH TOÁN'}
         </div>
-        ${copyLabel ? `<div style="font-size: 10px; font-style: italic;">(${escapeHtml(copyLabel)})</div>` : ''}
+        ${copyLabel ? `<div style="font-size: ${noteSize}; font-style: italic;">(${escapeHtml(copyLabel)})</div>` : ''}
       </div>
 
-      <div style="border-top: 1px dashed #000; margin: 6px 0;"></div>
+      <div style="border-top: 1px dashed #000; margin: 5px 0;"></div>
 
       <!-- Meta Info -->
-      <div style="font-size: 11px; margin-bottom: 6px;">
-        <div style="display: flex; justify-content: space-between;">
-          <span><strong>Bàn:</strong> ${escapeHtml(order.table_name)}</span>
-          <span><strong>Mã HĐ:</strong> ${escapeHtml(order.invoice_number || 'Tạm tính')}</span>
+      <div style="font-size: ${metaSize}; margin-bottom: 5px;">
+        <div style="display: flex; justify-content: space-between; gap: 4px;">
+          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><strong>Bàn:</strong> ${escapeHtml(order.table_name)}</span>
+          <span style="white-space: nowrap;"><strong>Mã HĐ:</strong> ${escapeHtml(order.invoice_number || 'Tạm tính')}</span>
         </div>
         <div style="display: flex; justify-content: space-between; margin-top: 2px;">
           <span><strong>Ngày:</strong> ${formatDateTime(order.created_at || new Date().toISOString())}</span>
@@ -119,16 +159,22 @@ export function generateReceiptHtml(
         }
       </div>
 
-      <div style="border-top: 1px dashed #000; margin: 6px 0;"></div>
+      <div style="border-top: 1px dashed #000; margin: 5px 0;"></div>
 
       <!-- Items Table -->
-      <table style="width: 100%; border-collapse: collapse; font-size: ${fontSize};">
+      <table style="width: 100%; border-collapse: collapse; font-size: ${fontSize}; table-layout: fixed;">
+        <colgroup>
+          <col style="width: auto;" />
+          <col style="width: ${qtyWidth};" />
+          <col style="width: ${unitPriceWidth};" />
+          <col style="width: ${totalPriceWidth};" />
+        </colgroup>
         <thead>
           <tr style="border-bottom: 1px dashed #000;">
-            <th style="text-align: left; padding-bottom: 4px; font-weight: 700;">Món</th>
-            <th style="text-align: center; padding-bottom: 4px; font-weight: 700; width: 26px;">SL</th>
-            <th style="text-align: right; padding-bottom: 4px; font-weight: 700; width: 55px;">Đ.Giá</th>
-            <th style="text-align: right; padding-bottom: 4px; font-weight: 700; width: 60px;">T.Tiền</th>
+            <th style="text-align: left; padding-bottom: 3px; font-weight: 700;">Món</th>
+            <th style="text-align: center; padding-bottom: 3px; font-weight: 700;">SL</th>
+            <th style="text-align: right; padding-bottom: 3px; font-weight: 700;">Đ.Giá</th>
+            <th style="text-align: right; padding-bottom: 3px; font-weight: 700;">T.Tiền</th>
           </tr>
         </thead>
         <tbody>
@@ -136,7 +182,7 @@ export function generateReceiptHtml(
         </tbody>
       </table>
 
-      <div style="border-top: 1px dashed #000; margin: 6px 0;"></div>
+      <div style="border-top: 1px dashed #000; margin: 5px 0;"></div>
 
       <!-- Totals -->
       <div style="margin-top: 4px; font-size: ${fontSize};">
@@ -154,15 +200,15 @@ export function generateReceiptHtml(
         `
             : ''
         }
-        <div style="border-top: 1px solid #000; margin: 4px 0;"></div>
-        <div style="display: flex; justify-content: space-between; font-size: ${titleSize}; font-weight: 800;">
+        <div style="border-top: 1px solid #000; margin: 3px 0;"></div>
+        <div style="display: flex; justify-content: space-between; font-size: ${totalSize}; font-weight: 800;">
           <span>TỔNG TIỀN:</span>
           <span>${formatCurrency(order.total)}</span>
         </div>
         ${
           !isPreBill && order.payment_method
             ? `
-          <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 11px;">
+          <div style="display: flex; justify-content: space-between; margin-top: 3px; font-size: ${metaSize};">
             <span>Hình thức:</span>
             <span><strong>${methodLabel[order.payment_method] || order.payment_method}</strong></span>
           </div>
@@ -171,13 +217,13 @@ export function generateReceiptHtml(
         }
       </div>
 
-      <div style="border-top: 1px dashed #000; margin: 8px 0 6px 0;"></div>
+      <div style="border-top: 1px dashed #000; margin: 6px 0 5px 0;"></div>
 
       <!-- Footer Info -->
-      <div style="text-align: center; font-size: 11px; margin-top: 4px;">
-        ${settings.wifi ? `<div style="margin-bottom: 4px; font-size: 10px;">${escapeHtml(settings.wifi)}</div>` : ''}
+      <div style="text-align: center; font-size: ${metaSize}; margin-top: 4px;">
+        ${settings.wifi ? `<div style="margin-bottom: 3px; font-size: ${noteSize};">${escapeHtml(settings.wifi)}</div>` : ''}
         <div style="font-weight: 600; margin-bottom: 2px;">${escapeHtml(settings.footerMessage)}</div>
-        <div style="font-size: 9px; color: #555; margin-top: 6px;">
+        <div style="font-size: ${noteSize}; color: #666; margin-top: 4px;">
           Powered by POS Molliee
         </div>
       </div>
@@ -235,14 +281,28 @@ export function printReceipt(
         <style>
           @page {
             size: auto;
-            margin: 0mm;
+            margin: 0mm !important;
           }
-          body {
-            margin: 0;
-            padding: 0;
+          * {
+            box-sizing: border-box !important;
+          }
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
             background: #fff;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
+          }
+          body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+          }
+          .receipt {
+            margin: 0 auto !important;
+            box-sizing: border-box !important;
           }
         </style>
       </head>

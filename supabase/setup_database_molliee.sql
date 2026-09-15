@@ -290,33 +290,3 @@ INSERT INTO categories (name, sort_order) VALUES
   ('Cà phê',        5),
   ('Đồ ăn vặt',     6)
 ON CONFLICT DO NOTHING;
-
--- 3. Khởi tạo một số món mẫu phổ biến cho quán Trà sữa Molliee
-INSERT INTO products (category_id, name, price) VALUES
-  -- Trà sữa
-  ((SELECT id FROM categories WHERE name = 'Trà sữa'), 'Trà sữa Trân Châu Hoàng Gia', 35000),
-  ((SELECT id FROM categories WHERE name = 'Trà sữa'), 'Trà sữa Oolong Nướng', 38000),
-  ((SELECT id FROM categories WHERE name = 'Trà sữa'), 'Trà sữa Matcha Nhật Bản', 38000),
-  ((SELECT id FROM categories WHERE name = 'Trà sữa'), 'Sữa tươi Trân Châu Đường Đen', 40000),
-  ((SELECT id FROM categories WHERE name = 'Trà sữa'), 'Trà sữa Kem Trứng Nướng', 42000),
-  -- Trà trái cây
-  ((SELECT id FROM categories WHERE name = 'Trà trái cây'), 'Trà Đào Cam Sả', 35000),
-  ((SELECT id FROM categories WHERE name = 'Trà trái cây'), 'Trà Ổi Hồng Dâu Tây', 38000),
-  ((SELECT id FROM categories WHERE name = 'Trà trái cây'), 'Trà Dâu Tằm Pha Lê', 35000),
-  ((SELECT id FROM categories WHERE name = 'Trà trái cây'), 'Trà Chanh Giã Tay', 30000),
-  -- Topping
-  ((SELECT id FROM categories WHERE name = 'Topping'), 'Trân châu đen', 5000),
-  ((SELECT id FROM categories WHERE name = 'Topping'), 'Trân châu trắng 3Q', 8000),
-  ((SELECT id FROM categories WHERE name = 'Topping'), 'Pudding trứng', 8000),
-  ((SELECT id FROM categories WHERE name = 'Topping'), 'Thạch nha đam', 6000),
-  ((SELECT id FROM categories WHERE name = 'Topping'), 'Kem Macchiato phô mai', 10000),
-  -- Cà phê
-  ((SELECT id FROM categories WHERE name = 'Cà phê'), 'Cà phê Đen', 22000),
-  ((SELECT id FROM categories WHERE name = 'Cà phê'), 'Cà phê Sữa Đá', 25000),
-  ((SELECT id FROM categories WHERE name = 'Cà phê'), 'Bạc Xỉu', 28000),
-  ((SELECT id FROM categories WHERE name = 'Cà phê'), 'Cà phê Muối', 32000),
-  -- Đồ ăn vặt
-  ((SELECT id FROM categories WHERE name = 'Đồ ăn vặt'), 'Bánh tráng trộn', 25000),
-  ((SELECT id FROM categories WHERE name = 'Đồ ăn vặt'), 'Khoai tây chiên', 30000),
-  ((SELECT id FROM categories WHERE name = 'Đồ ăn vặt'), 'Cá viên chiên', 25000)
-ON CONFLICT DO NOTHING;

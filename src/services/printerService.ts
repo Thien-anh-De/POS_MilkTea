@@ -5,6 +5,7 @@
 
 export interface PrinterSettings {
   paperSize: 'K80' | 'K58'
+  fontScale?: 'compact' | 'standard' | 'large'
   shopName: string
   shopAddress: string
   shopPhone: string
@@ -17,6 +18,7 @@ export interface PrinterSettings {
 
 export const DEFAULT_PRINTER_SETTINGS: PrinterSettings = {
   paperSize: 'K80',
+  fontScale: 'standard',
   shopName: 'TIỆM TRÀ SỮA MOLLIEE',
   shopAddress: '123 Đường Cà Phê, Quận 1, TP.HCM',
   shopPhone: '0901 994 994',
